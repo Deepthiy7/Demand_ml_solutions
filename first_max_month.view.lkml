@@ -6,13 +6,15 @@ view: first_max_month {
       FORMAT_TIMESTAMP('%Y', CAST(sku_data.DATE  AS TIMESTAMP)) AS year,
       sku_data.product_family  AS product_family,
       sku_data.upc_code  AS upc_code,
-        COALESCE(SUM(sku_data.ACTUAL ), 0) AS actual,
-        COALESCE(SUM(sku_data.FORECAST ), 0) AS predicted
+      total_price as predicted_price,
+      (sku_data.average_selling_price * sku_data.actual) AS actual_price,
+      sku_data.ACTUAL  AS actual,
+      sku_data.FORECAST  AS predicted
       FROM demand_forecast.sku_data  AS sku_data
       WHERE
       FORMAT_TIMESTAMP('%Y', CAST(sku_data.DATE  AS TIMESTAMP)) = (SELECT MAX(FORMAT_TIMESTAMP('%Y', CAST(sku_data.DATE  AS TIMESTAMP)))  FROM  demand_forecast.sku_data ) AND
       CAST(FORMAT_TIMESTAMP('%m', CAST(sku_data.DATE  AS TIMESTAMP))  AS NUMERIC) = (SELECT MAX(CAST(FORMAT_TIMESTAMP('%m', CAST(sku_data.DATE  AS TIMESTAMP)) AS NUMERIC)) FROM  demand_forecast.sku_data )
-      GROUP BY 1,2,3,4,5
+      GROUP BY 1,2,3,4,5,6,7,8,9
  ;;
   }
 
@@ -46,6 +48,16 @@ view: first_max_month {
     sql: ${TABLE}.upc_code ;;
   }
 
+  measure: predicted_price {
+    type: sum
+    sql: ${TABLE}.predicted_price ;;
+  }
+
+  measure: actual_price {
+    type: sum
+    sql: ${TABLE}.actual_price ;;
+  }
+
   measure: actual {
     type: sum
     sql: ${TABLE}.actual ;;
@@ -63,6 +75,8 @@ view: first_max_month {
       year,
       product_family,
       upc_code,
+      predicted_price,
+      actual_price,
       actual,
       predicted
     ]

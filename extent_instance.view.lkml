@@ -1,12 +1,10 @@
 view: extent_instance {
   derived_table: {
-    sql: SELECT DATE,UPC_CODE,SKU,PRODUCT_FAMILY,FORECAST,ACTUAL_DERIVED AS ACTUAL,cummulative_predictive_supply,
-        CASE
-              WHEN cummulative_predictive_supply > (10 * ACTUAL_DERIVED)
+    sql: SELECT DATE,UPC_CODE,SKU ,PRODUCT_FAMILY,FORECAST,ACTUAL,cummulative_predictive_supply,CASE
+              WHEN cummulative_predictive_supply > (10 * ACTUAL)
               THEN 1
               ELSE 0
-            END AS excess_instance_type
-            FROM (SELECT
+            END AS excess_instance_type from (SELECT
   DATE,
   UPC_CODE,
   SKU ,
@@ -15,13 +13,12 @@ view: extent_instance {
   ACTUAL,
   INVENTORY_STOCK,
   ETA_FOR_GOODS,
-  CASE WHEN ACTUAL is NULL then 0 ELSE ACTUAL END AS ACTUAL_DERIVED,
   CASE
-  WHEN ACTUAL is NULL THEN ABS((INVENTORY_STOCK + ETA_FOR_GOODS) - COALESCE(ACTUAL,FORECAST))
+  WHEN ACTUAL = 0 THEN ABS((INVENTORY_STOCK + ETA_FOR_GOODS) - COALESCE(NULLIF(ACTUAL, 0), FORECAST))
   ELSE 0
 END as cummulative_predictive_supply
 FROM demand_forecast.sku_data  AS sku_data
-GROUP BY 1,2,3,4,5,6,7,8) AS a
+GROUP BY 1,2,3,4,5,6,7,8) AS A
  ;;
   }
 
@@ -31,7 +28,7 @@ GROUP BY 1,2,3,4,5,6,7,8) AS a
   }
 
   dimension: date {
-    type: string
+    type: date
     sql: ${TABLE}.DATE ;;
   }
 
@@ -50,13 +47,13 @@ GROUP BY 1,2,3,4,5,6,7,8) AS a
     sql: ${TABLE}.PRODUCT_FAMILY ;;
   }
 
-  measure: forecast {
-    type: sum
+  dimension: forecast {
+    type: number
     sql: ${TABLE}.FORECAST ;;
   }
 
-  measure: actual {
-    type: sum
+  dimension: actual {
+    type: number
     sql: ${TABLE}.ACTUAL ;;
   }
 

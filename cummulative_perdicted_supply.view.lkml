@@ -10,14 +10,11 @@ view: cummulative_predicted_supply {
         INVENTORY_STOCK,
         ETA_FOR_GOODS,
         CASE
-        WHEN ACTUAL is NULL THEN ABS((INVENTORY_STOCK + ETA_FOR_GOODS) - COALESCE(ACTUAL,FORECAST))
+        WHEN ACTUAL is NULL THEN ABS((INVENTORY_STOCK + ETA_FOR_GOODS) - COALESCE(NULLIF(ACTUAL, 0), FORECAST))
         ELSE 0
       END as cumulative_predictive_supply
       FROM demand_forecast.sku_data  AS sku_data
-
       GROUP BY 1,2,3,4,5,6,7,8
-      ORDER BY 1
-      LIMIT 500
        ;;
   }
 
