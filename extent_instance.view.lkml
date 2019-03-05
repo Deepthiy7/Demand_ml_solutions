@@ -5,20 +5,21 @@ view: extent_instance {
               THEN 1
               ELSE 0
             END AS excess_instance_type from (SELECT
-  DATE,
-  UPC_CODE,
-  SKU ,
-  PRODUCT_FAMILY,
-  FORECAST,
-  ACTUAL,
-  INVENTORY_STOCK,
-  ETA_FOR_GOODS,
-  CASE
-  WHEN ACTUAL = 0 THEN ABS((INVENTORY_STOCK + ETA_FOR_GOODS) - COALESCE(NULLIF(ACTUAL, 0), FORECAST))
-  ELSE 0
-END as cummulative_predictive_supply
-FROM demand_forecast.sku_data  AS sku_data
-GROUP BY 1,2,3,4,5,6,7,8) AS A
+            DATE,
+            UPC_CODE,
+            SKU ,
+            PRODUCT_FAMILY,
+            FORECAST,
+            ACTUAL,
+            INVENTORY_STOCK,
+            ETA_FOR_GOODS,
+            CASE
+            WHEN ACTUAL = 0 THEN (INVENTORY_STOCK + ETA_FOR_GOODS) - COALESCE(NULLIF(ACTUAL, 0), FORECAST)
+            ELSE 0
+          END as cummulative_predictive_supply
+          FROM demand_forecast.sku_data  AS sku_data
+        GROUP BY 1,2,3,4,5,6,7,8)
+      AS A
  ;;
   }
 
